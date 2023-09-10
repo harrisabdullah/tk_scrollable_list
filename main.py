@@ -25,6 +25,7 @@ class ScrollableList:
         self.canvas.create_window((0, 0), window=self.item_container, anchor=tk.NW)
         self.canvas.bind_all("<MouseWheel>", self.on_mousewheel)
 
+    # !important!
     def update_canvas_scrollregion(self):
         self.item_container.update_idletasks()
         self.canvas.config(scrollregion=self.canvas.bbox("all"))
@@ -33,13 +34,20 @@ class ScrollableList:
         self.canvas.yview_scroll(event.delta, "units")
 
     def add_item(self, item, kwargs):
-        self.items.append(item(**kwargs))
-        self.items[-1].start(self.item_container, lambda: self.delete_item(len(self.items) - 1))
+        item = item(**kwargs)
+        # !important! the second argument is a function that will be called if the item gets deleted
+        item.start(self.item_container, lambda: self.delete_item(len(self.items) - 1))
+
+        self.items.append(item)
         self.update_canvas_scrollregion()
 
+    # !important! the deleting an item from the list and updating scroll bar
     def delete_item(self, index):
         self.items[index] = None
         self.update_canvas_scrollregion()
+
+    def map(self, func):
+        return [func(i) for i in self.items if i]
 
 
 class ImageEditUI:
@@ -52,6 +60,7 @@ class ImageEditUI:
         self.PIL_image = Image.open(image_path)
         self.PIL_image.thumbnail((800, 800))
         self.image = ImageTk.PhotoImage(self.PIL_image)
+        self.image_path = image_path
 
     def start(self, container, remove_from_parent):
         self.remove_from_parent = remove_from_parent
@@ -71,10 +80,14 @@ class ImageEditUI:
         delete_button = tk.Button(self.frame, text="Delete", command=self.delete)
         delete_button.pack()
 
+    # !important! how a list element deletes itself
     def delete(self):
         for child in self.frame.winfo_children():
             child.destroy()
         self.frame.destroy()
+
+    def export(self):
+        return {"image": self.image_path, "text": self.input.get()}
 
 
 scrollable_list = ScrollableList()
@@ -82,5 +95,5 @@ scrollable_list = ScrollableList()
 root = tk.Tk()
 scrollable_list.start(root)
 scrollable_list.update_canvas_scrollregion()
-scrollable_list.add_item(ImageEditUI, {"image_path": "test.png", "root": root})
+scrollable_list.add_item(ImageEditUI, {"image_path": "test.png"})
 root.mainloop()
