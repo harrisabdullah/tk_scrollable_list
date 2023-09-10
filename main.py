@@ -43,7 +43,7 @@ class ScrollableList:
 
 
 class ImageEditUI:
-    def __init__(self, root, image_path):
+    def __init__(self, image_path):
         self.remove_from_parent = None
         self.root = root
         self.input = None
@@ -75,8 +75,6 @@ class ImageEditUI:
         for child in self.frame.winfo_children():
             child.destroy()
         self.frame.destroy()
-
-        root.after(100, self.remove_from_parent)
 
 
 scrollable_list = ScrollableList()
